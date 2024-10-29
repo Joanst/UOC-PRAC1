@@ -2,7 +2,7 @@ import requests
 import time 
 from bs4 import BeautifulSoup 
 
-##Modificar User Agent
+#Modificar User Agent
 headers = {
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,\
     */*;q=0.8",
@@ -16,29 +16,38 @@ headers = {
     37.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36"
 }
 
-## Web a la q accedim
-##pagina="https://ca.wikipedia.org/wiki/La_guerra_de_les_gal%C3%A0xies"
+# Web a la q accedim
+#pagina="https://ca.wikipedia.org/wiki/La_guerra_de_les_gal%C3%A0xies"
 pagina="https://www.lapastaperalscatalans.cat/pasta/receptes"
 
 
-##<a href="https://www.lapastaperalscatalans.cat/pasta/receptes/page/22" class="last" title="Last Page">22</a>
+#obtenim la pàgina sencera i creem un objecte beautiful soup per treballar-hi
+page= requests.get(pagina, headers=headers)
+soupPage= BeautifulSoup(page.content, features="html.parser")
 
-
-##obtenim la pàgina sencera i creem un objecte beautiful soup per treballar-hi
-page=requests.get(pagina, headers=headers)
-soupPage = BeautifulSoup(page.content, features="html.parser")
-
-
-##Obtenim el numero màxim de pàgines de receptes que te la web
+'''
+#Obtenim el numero màxim de pàgines de receptes que te la web
 ultimaPagina= soupPage.find("a", class_="last")
-ultimaPagina =int(ultimaPagina.text)
-
-blockReceptes= soupPage.find_all("h2", class_="entry-tittle")
-
+ultimaPagina= int(ultimaPagina.text)
+print("el document té "+str(ultimaPagina)+" pàgines de receptes")
 
 
+#Obtenim el titol de la primera recepta
+recepta =soupPage.find("h2", class_="entry-title")
+titolRecepta= recepta.get_text()
+print("el nom de la primera recepta és: "+titolRecepta)
+
+#Obtenim el link de la primera recepta
+linkRecepta= recepta.find("a")
+linkRecepta= linkRecepta.get("href")
+print("el link de la recepta és: "+linkRecepta)
+
+'''
+
+receptes =soupPage.find_all("h2", class_="entry-title")
+for article in receptes :
+    print(article.get_text())
+    print(article.find("a").get("href"))
 
 
-##<a href="https://www.lapastaperalscatalans.cat/receptes/postre/coca-de-sant-juan-a-la-italiana.html" title="Permalink to: &quot;Coca de Sant Joan a la italiana&quot;">Coca de Sant Joan a la italiana</a>
 
-print(receptes)
