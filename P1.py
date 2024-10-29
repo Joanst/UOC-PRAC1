@@ -17,13 +17,28 @@ headers = {
 }
 
 ## Web a la q accedim
-pagina="https://ca.wikipedia.org/wiki/La_guerra_de_les_gal%C3%A0xies"
+##pagina="https://ca.wikipedia.org/wiki/La_guerra_de_les_gal%C3%A0xies"
+pagina="https://www.lapastaperalscatalans.cat/pasta/receptes"
 
 
+##<a href="https://www.lapastaperalscatalans.cat/pasta/receptes/page/22" class="last" title="Last Page">22</a>
 
 
-
+##obtenim la pàgina sencera i creem un objecte beautiful soup per treballar-hi
 page=requests.get(pagina, headers=headers)
-##print(page.status_code)
-soup = BeautifulSoup(page.content, features="html.parser")
-print(soup.prettify())
+soupPage = BeautifulSoup(page.content, features="html.parser")
+
+
+##Obtenim el numero màxim de pàgines de receptes que te la web
+ultimaPagina= soupPage.find("a", class_="last")
+ultimaPagina =int(ultimaPagina.text)
+
+blockReceptes= soupPage.find_all("h2", class_="entry-tittle")
+
+
+
+
+
+##<a href="https://www.lapastaperalscatalans.cat/receptes/postre/coca-de-sant-juan-a-la-italiana.html" title="Permalink to: &quot;Coca de Sant Joan a la italiana&quot;">Coca de Sant Joan a la italiana</a>
+
+print(receptes)
