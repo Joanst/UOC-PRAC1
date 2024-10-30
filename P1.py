@@ -25,6 +25,41 @@ pagina="https://www.lapastaperalscatalans.cat/pasta/receptes"
 page= requests.get(pagina, headers=headers)
 soupPage= BeautifulSoup(page.content, features="html.parser")
 
+#Definim la llista per a desar els links de totes les receptes
+linksReceptes=[]
+
+#afegim tots els links de la primera pàgina de receptes en una llista
+receptes =soupPage.find_all("h2", class_="entry-title")
+for recepta in receptes :
+    #nomRecepta= recepta.get_text().strip("\n")
+    linkRecepta= recepta.find("a").get("href")
+    #print(nomRecepta)
+    #print(linkRecepta+"\n")
+    linksReceptes.append(linkRecepta)
+
+#Obtenir el numero de pàgines de receptes
+ultimaPagina= soupPage.find("a", class_="last")
+ultimaPagina= int(ultimaPagina.text)
+
+for i in range(1,ultimaPagina+1):
+    pagina="https://www.lapastaperalscatalans.cat/pasta/receptes/page/"+str(i)
+    page= requests.get(pagina, headers=headers)
+    soupPage= BeautifulSoup(page.content, features="html.parser")
+    receptes =soupPage.find_all("h2", class_="entry-title")
+    for recepta in receptes :
+        linkRecepta= recepta.find("a").get("href")
+        linksReceptes.append(linkRecepta)
+    
+
+for linkRecepta in linksReceptes:
+    print(linkRecepta)
+
+print("Tenim "+str(len(linksReceptes))+" Receptes")
+
+
+
+
+
 '''
 #Obtenim el numero màxim de pàgines de receptes que te la web
 ultimaPagina= soupPage.find("a", class_="last")
@@ -43,11 +78,3 @@ linkRecepta= linkRecepta.get("href")
 print("el link de la recepta és: "+linkRecepta)
 
 '''
-
-receptes =soupPage.find_all("h2", class_="entry-title")
-for article in receptes :
-    print(article.get_text())
-    print(article.find("a").get("href"))
-
-
-
