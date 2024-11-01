@@ -60,10 +60,10 @@ for linkRecepta in linksReceptes:
     ingredients_ =soupPage.find("div", class_="entry-content content") 
     ingredients_ = ingredients_.find_all("li")
 
-    ingredients=""
+    ingredients=[]
     for ingredient in ingredients_:
         ingredient=ingredient.get_text().strip("\n")
-        ingredients = ingredients +ingredient+", "
+        ingredients.append(ingredient)
 
     #Obtenim la preparacio 
     #Falta treure el text introductori
