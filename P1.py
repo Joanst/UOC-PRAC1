@@ -65,16 +65,25 @@ for linkRecepta in linksReceptes:
         ingredient=ingredient.get_text().strip("\n")
         ingredients = ingredients +ingredient+", "
 
+    #Obtenim la preparacio 
+    #Falta treure el text introductori
+    passos=soupPage.find("div", class_="entry-content content") 
+    passos=passos.find_all("p")
+    preparacio=""
+    for pas in passos:
+        preparacio=preparacio+"\n"+pas.get_text()
+
+    #Creem el diccionari
     recepta = {
         "Nom":nomRecepta,
         "Link":linkRecepta,
-        "Ingredients": ingredients
+        "Ingredients": ingredients,
+        "Preparacio": preparacio
         }
-        
+    #afegim a la llista de diccionaris
     llistaReceptes.append(recepta)
+
 '''
-
-
 #Només amb una recepta per a provar
 pagina= "https://www.lapastaperalscatalans.cat/tipus-de-pasta/macarrons/penne-rigate-amb-ragu-blanc-de-botifarra.html"
 page= requests.get(pagina, headers=headers)
@@ -100,7 +109,12 @@ preparacio=""
 for pas in passos:
     preparacio=preparacio+"\n"+pas.get_text()
 
-print(preparacio)
+#Obtenim els tags
+tags = soupPage.find("footer", class_="entry-footer cf" )
+tags = tags.find_all("a")
+for tag in tags:
+    print(tag.get_text())
+
 
 #Creem el diccionari
 recepta = {
@@ -112,7 +126,7 @@ recepta = {
 #afegim a la llista de diccionaris
 llistaReceptes.append(recepta)
 
-'''
+
 #Creem l'arxiu csv i exportem tota la llista de diccionaris
 with open('receptes.csv', mode='w', newline='', encoding='utf-8') as arxiu_csv:
     camps=llistaReceptes[0].keys()
@@ -121,5 +135,5 @@ with open('receptes.csv', mode='w', newline='', encoding='utf-8') as arxiu_csv:
     escriptor_csv.writeheader()
     escriptor_csv.writerows(llistaReceptes)
     
-'''
+
 
