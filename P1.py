@@ -1,5 +1,6 @@
 import requests
 import time 
+import csv
 from bs4 import BeautifulSoup 
 
 #Modificar User Agent
@@ -15,7 +16,7 @@ headers = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) AppleWebKit/5\
     37.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36"
 }
-'''
+
 # Web a la q accedim
 #pagina="https://ca.wikipedia.org/wiki/La_guerra_de_les_gal%C3%A0xies"
 pagina="https://www.lapastaperalscatalans.cat/pasta/receptes"
@@ -41,60 +42,42 @@ for i in range(1,ultimaPagina+1):
         linksReceptes.append(linkRecepta)
     
 
+##Aqui desarem totes les receptes
+llistaReceptes=[]
 for linkRecepta in linksReceptes:
-    print(linkRecepta)
+    #Explorem la pàgina de la recepta
+    pagina= linkRecepta
+    page= requests.get(pagina, headers=headers)
+    soupPage= BeautifulSoup(page.content, features="html.parser")
+    
+    #Obtenim el nom de la recepta
+    nomRecepta =soupPage.find("h1", class_="entry-title")
+    nomRecepta=nomRecepta.get_text()
 
-print("Tenim "+str(len(linksReceptes))+" Receptes")
+    #Obtenim els ingredients
+    ingredients_ =soupPage.find("div", class_="entry-content content") 
+    ingredients_ = ingredients_.find_all("li")
 
-'''
+    ingredients=""
+    for ingredient in ingredients_:
+        ingredient=ingredient.get_text().strip("\n")
+        ingredients = ingredients +ingredient+", "
 
-
-#Explorem la pàgina de la recepta
-pagina= "https://www.lapastaperalscatalans.cat/receptes/peix/pasta-amb-carbassons-tonyina-llimona-i-perfum-dalfabrega-i-menta.html"
-
-page= requests.get(pagina, headers=headers)
-soupPage= BeautifulSoup(page.content, features="html.parser")
-
-#Obtenim el nom de la recepta
-nomRecepta =soupPage.find("h1", class_="entry-title")
-nomRecepta=nomRecepta.get_text()
-#Obtenim els ingredients
-ingredients =soupPage.find("div", class_="entry-content content") 
-ingredients = ingredients.find_all("li")
-llistaIngredients =[]
-for ingredient in ingredients:
-    llistaIngredients.append(ingredient.get_text())
-
-
-
-
+    recepta = {
+        "Nom":nomRecepta,
+        "Link":linkRecepta,
+        "Ingredients": ingredients
+        }
+    llistaReceptes.append(recepta)
 
 
-'''
-#Obtenim el numero màxim de pàgines de receptes que te la web
-ultimaPagina= soupPage.find("a", class_="last")
-ultimaPagina= int(ultimaPagina.text)
-print("el document té "+str(ultimaPagina)+" pàgines de receptes")
 
-
-#Obtenim el titol de la primera recepta
-recepta =soupPage.find("h2", class_="entry-title")
-titolRecepta= recepta.get_text()
-print("el nom de la primera recepta és: "+titolRecepta)
-
-#Obtenim el link de la primera recepta
-linkRecepta= recepta.find("a")
-linkRecepta= linkRecepta.get("href")
-print("el link de la recepta és: "+linkRecepta)
-
-'''
-''' La primera pagina està inclosa dins el proper loop
-#afegim tots els links de la primera pàgina de receptes en una llista
-receptes =soupPage.find_all("h2", class_="entry-title")
-for recepta in receptes :
-    #nomRecepta= recepta.get_text().strip("\n")
-    linkRecepta= recepta.find("a").get("href")
-    #print(nomRecepta)
-    #print(linkRecepta+"\n")
-    linksReceptes.append(linkRecepta)
-'''
+#Creem l'arxiu csv i exportem tota la llista de diccionaris
+with open('receptes.csv', mode='w', newline='', encoding='utf-8') as arxiu_csv:
+    camps=llistaReceptes[0].keys()
+    escriptor_csv = csv.DictWriter(arxiu_csv, fieldnames=camps)
+    
+    escriptor_csv.writeheader()
+    escriptor_csv.writerows(llistaReceptes)
+    
+print(llistaReceptes)
