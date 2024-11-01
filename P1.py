@@ -44,7 +44,7 @@ for i in range(1,ultimaPagina+1):
 
 ##Aqui desarem totes les receptes
 llistaReceptes=[]
-'''
+
 #Rastregem totes les receptes de la pàgina i les desem en una llista de diccionaris
 for linkRecepta in linksReceptes:
     #Explorem la pàgina de la recepta
@@ -73,14 +73,24 @@ for linkRecepta in linksReceptes:
     for pas in passos:
         preparacio=preparacio+"\n"+pas.get_text()
 
+    #Obtenim els tags
+    tags=[]
+    tags_ = soupPage.find("footer", class_="entry-footer cf" )
+    if tags_ is not None:
+        tags_ = tags_.find_all("a")
+        for tag in tags_:
+            tags.append(tag.get_text())
+    
     #Creem el diccionari
     recepta = {
         "Nom":nomRecepta,
         "Link":linkRecepta,
         "Ingredients": ingredients,
-        "Preparacio": preparacio
+        "Preparacio": preparacio,
+        "Tags": tags
         }
     #afegim a la llista de diccionaris
+
     llistaReceptes.append(recepta)
 
 '''
@@ -110,10 +120,12 @@ for pas in passos:
     preparacio=preparacio+"\n"+pas.get_text()
 
 #Obtenim els tags
-tags = soupPage.find("footer", class_="entry-footer cf" )
-tags = tags.find_all("a")
-for tag in tags:
-    print(tag.get_text())
+tags=[]
+tags_ = soupPage.find("footer", class_="entry-footer cf" )
+tags_ = tags_.find_all("a")
+for tag in tags_:
+    tags.append(tag.get_text())
+
 
 
 #Creem el diccionari
@@ -121,12 +133,13 @@ recepta = {
     "Nom":nomRecepta,
     "Link":linkRecepta,
     "Ingredients": ingredients,
-    "Preparacio": preparacio
+    "Preparacio": preparacio,
+    "Tags": tags
     }
 #afegim a la llista de diccionaris
 llistaReceptes.append(recepta)
 
-
+'''
 #Creem l'arxiu csv i exportem tota la llista de diccionaris
 with open('receptes.csv', mode='w', newline='', encoding='utf-8') as arxiu_csv:
     camps=llistaReceptes[0].keys()
