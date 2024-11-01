@@ -44,6 +44,8 @@ for i in range(1,ultimaPagina+1):
 
 ##Aqui desarem totes les receptes
 llistaReceptes=[]
+'''
+#Rastregem totes les receptes de la pàgina i les desem en una llista de diccionaris
 for linkRecepta in linksReceptes:
     #Explorem la pàgina de la recepta
     pagina= linkRecepta
@@ -68,10 +70,49 @@ for linkRecepta in linksReceptes:
         "Link":linkRecepta,
         "Ingredients": ingredients
         }
+        
     llistaReceptes.append(recepta)
+'''
 
 
+#Només amb una recepta per a provar
+pagina= "https://www.lapastaperalscatalans.cat/tipus-de-pasta/macarrons/penne-rigate-amb-ragu-blanc-de-botifarra.html"
+page= requests.get(pagina, headers=headers)
+soupPage= BeautifulSoup(page.content, features="html.parser")
 
+#Obtenim el nom de la recepta
+nomRecepta =soupPage.find("h1", class_="entry-title")
+nomRecepta=nomRecepta.get_text()
+
+#Obtenim els ingredients
+ingredients_ =soupPage.find("div", class_="entry-content content") 
+ingredients_ = ingredients_.find_all("li")
+ingredients=""
+for ingredient in ingredients_:
+    ingredient=ingredient.get_text().strip("\n")
+    ingredients = ingredients +ingredient+", "
+
+#Obtenim la preparacio 
+#Falta treure el text introductori
+passos=soupPage.find("div", class_="entry-content content") 
+passos=passos.find_all("p")
+preparacio=""
+for pas in passos:
+    preparacio=preparacio+"\n"+pas.get_text()
+
+print(preparacio)
+
+#Creem el diccionari
+recepta = {
+    "Nom":nomRecepta,
+    "Link":linkRecepta,
+    "Ingredients": ingredients,
+    "Preparacio": preparacio
+    }
+#afegim a la llista de diccionaris
+llistaReceptes.append(recepta)
+
+'''
 #Creem l'arxiu csv i exportem tota la llista de diccionaris
 with open('receptes.csv', mode='w', newline='', encoding='utf-8') as arxiu_csv:
     camps=llistaReceptes[0].keys()
@@ -80,4 +121,5 @@ with open('receptes.csv', mode='w', newline='', encoding='utf-8') as arxiu_csv:
     escriptor_csv.writeheader()
     escriptor_csv.writerows(llistaReceptes)
     
-print(llistaReceptes)
+'''
+
