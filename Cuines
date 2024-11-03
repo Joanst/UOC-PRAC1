@@ -1,0 +1,110 @@
+# -*- coding: utf-8 -*-
+"""
+@author: Joan i Victor
+"""
+
+from bs4 import BeautifulSoup 
+import requests
+import time 
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+
+#Modificar User Agent
+headers = {
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,\
+    */*;q=0.8",
+    "Accept-Encoding": "gzip, deflate, sdch, br",
+    "Accept-Language": "en-US,en;q=0.8",
+    "Cache-Control": "no-cache",
+    "dnt": "1",
+    "Pragma": "no-cache",
+    "Upgrade-Insecure-Requests": "1",
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) AppleWebKit/5\
+    37.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36"
+}
+    
+# Web a la que accedim
+pagina="https://www.3cat.cat/tv3/cuines/receptes/"
+
+# Obtenim la pàgina sencera i creem un objecte beautiful soup per treballar-hi
+page= requests.get(pagina, headers=headers)
+soupPage= BeautifulSoup(page.content, features="html.parser")
+
+# Obtenir el numero de pàgines de receptes
+ultimaPagina = soupPage.find("p", class_="numeracio")
+ultimaPagina = ultimaPagina.text.split(" ")[3]
+ultimaPagina = int(ultimaPagina)
+print("Tenim un total de", ultimaPagina, "pagines! \n")
+
+def extreure_receptes(website):
+    receptes = website.find_all("a", {"class": "titol--a"})
+    pagurls = ["https://www.3cat.cat" + recepta["href"] for recepta in receptes]
+    urls.extend(pagurls)
+
+urls = []
+i = 1
+
+driver = webdriver.Chrome()
+driver.get(pagina)
+time.sleep(1)
+
+cookies = driver.find_element(By.ID, "didomi-notice-disagree-button")
+cookies.click()
+
+while i <= 3:# ultimaPagina:
+    print("Estem en la pagina:", i, "\n")
+    website = BeautifulSoup(driver.page_source, features="html.parser")
+    extreure_receptes(website)
+    if i != ultimaPagina:
+        seguent = driver.find_element(By.CSS_SELECTOR, "li.R-seg a[data-toggle='tab']")
+        seguent.click()
+        time.sleep(2)
+    i += 1
+    
+driver.quit()
+
+print(len(urls))
+
+with open('urls.txt', 'w') as f:
+    for url in urls:
+        f.write(url + '\n')
+
+# urls = ["https://www.3cat.cat/tv3/cuines/recepta/pa-amb-vi-i-sucre-especiat/43957/"]
+        
+for linkRecepta in urls:
+    page = requests.get(linkRecepta, headers=headers)
+    soupPage = BeautifulSoup(page.content, features="html.parser")
+    
+    # Obtenim el nom de la recepta
+    nomRecepta = soupPage.find_all("h1")[1]
+    nomRecepta = nomRecepta.string
+    print(nomRecepta)
+    
+    # Obtenim els tags
+    div_tags = soupPage.find("div", class_ = "llistat-tags")
+    a_tags = div_tags.find_all("a")
+    Etiquetes = [tag.string for tag in a_tags]
+    print(Etiquetes)
+    
+    # Obtenim la info basica
+    div_info = soupPage.find("div", class_ = "span4 informacio-basica")
+    li_info = div_info.find_all("li")
+    Dificultat = li_info[2].get_text().split()[1]
+    Temps = li_info[3].get_text().split(":")[1].replace("\n", "").strip()
+    Dieta = li_info[4].get_text().split()[1]
+    print(Dificultat)
+    print(Temps)
+    print(Dieta)
+    
+    # Obtenim els ingredients
+    div_ingredients = soupPage.find("div", class_ = "ingredients")
+    li_ingredients = div_ingredients.find_all("p")
+    Ingredients = [ingredient.string for ingredient in li_ingredients]
+    print(Ingredients)
+    
+    # Obtenim la preparacio
+    preparacio = soupPage.find("ol")
+    pasos = preparacio.find_all("li")
+    Preparacio = [pas.string for pas in pasos]
+    print(Preparacio)
