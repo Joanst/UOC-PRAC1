@@ -39,7 +39,9 @@ for i in range(1,ultimaPagina+1):
     receptes =soupPage.find_all("h2", class_="entry-title")
     for recepta in receptes :
         linkRecepta= recepta.find("a").get("href")
-        linksReceptes.append(linkRecepta)
+        ## Prenem nomes les receptes, eliminem els articles que no ho son.
+        if linkRecepta.split("/")[3] == "receptes":
+            linksReceptes.append(linkRecepta)
     
 
 ##Aqui desarem totes les receptes
@@ -56,6 +58,9 @@ for linkRecepta in linksReceptes:
     nomRecepta =soupPage.find("h1", class_="entry-title")
     nomRecepta=nomRecepta.get_text()
 
+    #Obtenim la categoria
+    nomCategoria = linkRecepta.split("/")[4]
+    
     #Obtenim els ingredients
     ingredients_ =soupPage.find("div", class_="entry-content content") 
     ingredients_ = ingredients_.find_all("li")
@@ -85,6 +90,7 @@ for linkRecepta in linksReceptes:
     recepta = {
         "Nom":nomRecepta,
         "Link":linkRecepta,
+        "Categoria":nomCategoria,
         "Ingredients": ingredients,
         "Preparacio": preparacio,
         "Tags": tags
