@@ -58,6 +58,9 @@ for linkRecepta in linksReceptes:
     nomRecepta =soupPage.find("h1", class_="entry-title")
     nomRecepta=nomRecepta.get_text()
 
+    #Obtenim la categoria
+    nomCategoria = linkRecepta.split("/")[4]
+    
     #Obtenim els ingredients
     ingredients_ =soupPage.find("div", class_="entry-content content") 
     ingredients_ = ingredients_.find_all("li")
@@ -87,6 +90,7 @@ for linkRecepta in linksReceptes:
     recepta = {
         "Nom":nomRecepta,
         "Link":linkRecepta,
+        "Categoria":nomCategoria,
         "Ingredients": ingredients,
         "Preparacio": preparacio,
         "Tags": tags
