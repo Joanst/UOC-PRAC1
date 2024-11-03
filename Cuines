@@ -38,9 +38,16 @@ ultimaPagina = int(ultimaPagina)
 print("Tenim un total de", ultimaPagina, "pagines! \n")
 
 def extreure_receptes(website):
-    receptes = website.find_all("a", {"class": "titol--a"})
-    pagurls = ["https://www.3cat.cat" + recepta["href"] for recepta in receptes]
-    urls.extend(pagurls)
+    receptes = website.find_all("div", class_ = "M-destacat cuines T-cuinesTema")
+
+    for recepta in receptes:
+        print(recepta)
+        nom = recepta.find("a", {"class": "titol--a"})
+        img = recepta.find("img", class_="foto")
+        
+        pagina_url = "https://www.3cat.cat" + nom["href"]
+        pagina_img = img["src"]
+        urls.append((pagina_url, pagina_img))
 
 urls = []
 i = 1
@@ -52,7 +59,7 @@ time.sleep(1)
 cookies = driver.find_element(By.ID, "didomi-notice-disagree-button")
 cookies.click()
 
-while i <= 3:# ultimaPagina:
+while i <= 1:# ultimaPagina:
     print("Estem en la pagina:", i, "\n")
     website = BeautifulSoup(driver.page_source, features="html.parser")
     extreure_receptes(website)
@@ -67,12 +74,11 @@ driver.quit()
 print(len(urls))
 
 with open('urls.txt', 'w') as f:
-    for url in urls:
-        f.write(url + '\n')
-
-# urls = ["https://www.3cat.cat/tv3/cuines/recepta/pa-amb-vi-i-sucre-especiat/43957/"]
-        
-for linkRecepta in urls:
+    for url, img in urls:
+        f.write(f"{url}, ")
+        f.write(f"{img}\n")
+       
+for linkRecepta, img_url in urls:
     page = requests.get(linkRecepta, headers=headers)
     soupPage = BeautifulSoup(page.content, features="html.parser")
     
@@ -90,9 +96,18 @@ for linkRecepta in urls:
     # Obtenim la info basica
     div_info = soupPage.find("div", class_ = "span4 informacio-basica")
     li_info = div_info.find_all("li")
-    Dificultat = li_info[2].get_text().split()[1]
-    Temps = li_info[3].get_text().split(":")[1].replace("\n", "").strip()
-    Dieta = li_info[4].get_text().split()[1]
+    try:
+        Dificultat = li_info[2].get_text().split()[1]
+    except:
+        Dificultat = None
+    try:
+        Temps = li_info[3].get_text().split(":")[1].replace("\n", "").strip()
+    except:
+        Temps = None
+    try:
+        Dieta = li_info[4].get_text().split()[1]
+    except:
+        Dieta = None
     print(Dificultat)
     print(Temps)
     print(Dieta)
@@ -104,7 +119,11 @@ for linkRecepta in urls:
     print(Ingredients)
     
     # Obtenim la preparacio
-    preparacio = soupPage.find("ol")
-    pasos = preparacio.find_all("li")
+    preparacio = soupPage.find("h2", string="PREPARACIÓ")
+    pasos = preparacio.find_next_sibling().find_all(["li", "p"])
     Preparacio = [pas.string for pas in pasos]
     print(Preparacio)
+    
+    # Obtenim la fotografia
+    Imatge = img_url
+    print(Imatge)
