@@ -39,7 +39,9 @@ for i in range(1,ultimaPagina+1):
     receptes =soupPage.find_all("h2", class_="entry-title")
     for recepta in receptes :
         linkRecepta= recepta.find("a").get("href")
-        linksReceptes.append(linkRecepta)
+        ## Prenem nomes les receptes, eliminem els articles que no ho son.
+        if linkRecepta.split("/")[3] == "receptes":
+            linksReceptes.append(linkRecepta)
     
 
 ##Aqui desarem totes les receptes
