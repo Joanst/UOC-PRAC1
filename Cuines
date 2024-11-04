@@ -9,9 +9,17 @@ import time
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 import csv
-# from selenium.webdriver.common.keys import Keys
+import random
 
 #Modificar User Agent
+
+user_agents = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3", 
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.1 Safari/605.1.15",
+    "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:50.0) Gecko/20100101 Firefox/50.0",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36"
+]
+
 headers = {
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,\
     */*;q=0.8",
@@ -21,8 +29,7 @@ headers = {
     "dnt": "1",
     "Pragma": "no-cache",
     "Upgrade-Insecure-Requests": "1",
-    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) AppleWebKit/5\
-    37.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36"
+    "User-Agent": random.choice(user_agents)
 }
     
 # Web a la que accedim
@@ -65,19 +72,26 @@ time.sleep(1)
 cookies = driver.find_element(By.ID, "didomi-notice-disagree-button")
 cookies.click()
 
-while i <= ultimaPagina:
+print(time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()), "\n")
+
+while i <=3:# ultimaPagina:
     print("Queden:", ultimaPagina - i, "pagines\n")
     website = BeautifulSoup(driver.page_source, features="html.parser")
     extreure_receptes(website, i)
     if i != ultimaPagina:
-        seguent = driver.find_element(By.CSS_SELECTOR, "li.R-seg a[data-toggle='tab']")
-        seguent.click()
-        time.sleep(2)
+        try:
+            seguent = driver.find_element(By.CSS_SELECTOR, "li.R-seg a[data-toggle='tab']")
+            seguent.click()
+        except:
+            break
+        time.sleep(random.uniform(2, 4))
     i += 1
-    
+
 driver.quit()
 
-print(len(urls))
+print(time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()), "\n")
+numreceptes = len(urls)
+print("Tenim", numreceptes, "receptes.")
 
 with open('urls.txt', 'w') as f:
     for url, img, numpag in urls:
@@ -86,8 +100,11 @@ with open('urls.txt', 'w') as f:
         f.write(f"{numpag}\n")
         
 llistaReceptes = []
+numrecepta = 0
        
 for linkRecepta, img_url, numpag in urls:
+    numrecepta += 1
+    
     page = requests.get(linkRecepta, headers=headers)
     soupPage = BeautifulSoup(page.content, features="html.parser")
     
@@ -95,6 +112,7 @@ for linkRecepta, img_url, numpag in urls:
     nomRecepta = soupPage.find_all("h1")[1]
     nomRecepta = nomRecepta.string
     print(nomRecepta)
+    print("(",numrecepta,"/",numreceptes,")\n")
     
     # Obtenim els tags
     try:
@@ -103,7 +121,7 @@ for linkRecepta, img_url, numpag in urls:
         Etiquetes = [tag.string for tag in a_tags]
     except:
         Etiquetes = None
-    print(Etiquetes)
+#    print(Etiquetes)
     
     # Obtenim la info basica
     div_info = soupPage.find("div", class_ = "span4 informacio-basica")
@@ -130,28 +148,28 @@ for linkRecepta, img_url, numpag in urls:
     except:
         Dieta = None
     
-    print(Dificultat)
-    print(Temps)
-    print(Dieta)
+#    print(Dificultat)
+#    print(Temps)
+#    print(Dieta)
     
     # Obtenim els ingredients
     div_ingredients = soupPage.find("div", class_ = "ingredients")
-    li_ingredients = div_ingredients.find_all("p")
-    Ingredients = [ingredient.string for ingredient in li_ingredients]
-    print(Ingredients)
+    li_ingredients = div_ingredients.find_all(["li", "p"])
+    Ingredients = [ingredient.get_text(strip = True) for ingredient in li_ingredients]
+#    print(Ingredients)
     
     # Obtenim la preparacio
     preparacio = soupPage.find("h2", string="PREPARACIÓ")
-    pasos = preparacio.find_next_sibling().find_all(["li", "p"])
+    pasos = preparacio.find_next_sibling().find_all(["li", "p", "div"])
     Preparacio = [pas.string for pas in pasos]
-    print(Preparacio)
+#    print(Preparacio)
     
     # Obtenim la fotografia
     try:
         Imatge = img_url
     except: 
         Imatge = None
-    print(Imatge)
+#    print(Imatge)
 #'''    
     # Creem el diccionari
     recepta = {
