@@ -8,7 +8,8 @@ import requests
 import time 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
+import csv
+# from selenium.webdriver.common.keys import Keys
 
 #Modificar User Agent
 headers = {
@@ -37,17 +38,22 @@ ultimaPagina = ultimaPagina.text.split(" ")[3]
 ultimaPagina = int(ultimaPagina)
 print("Tenim un total de", ultimaPagina, "pagines! \n")
 
-def extreure_receptes(website):
+#'''
+
+def extreure_receptes(website, numpag):
     receptes = website.find_all("div", class_ = "M-destacat cuines T-cuinesTema")
 
     for recepta in receptes:
-        print(recepta)
+
         nom = recepta.find("a", {"class": "titol--a"})
         img = recepta.find("img", class_="foto")
         
         pagina_url = "https://www.3cat.cat" + nom["href"]
-        pagina_img = img["src"]
-        urls.append((pagina_url, pagina_img))
+        try:
+            pagina_img = img["src"]
+        except:
+            pagina_img = None
+        urls.append((pagina_url, pagina_img, numpag))
 
 urls = []
 i = 1
@@ -59,10 +65,10 @@ time.sleep(1)
 cookies = driver.find_element(By.ID, "didomi-notice-disagree-button")
 cookies.click()
 
-while i <= 1:# ultimaPagina:
-    print("Estem en la pagina:", i, "\n")
+while i <= ultimaPagina:
+    print("Queden:", ultimaPagina - i, "pagines\n")
     website = BeautifulSoup(driver.page_source, features="html.parser")
-    extreure_receptes(website)
+    extreure_receptes(website, i)
     if i != ultimaPagina:
         seguent = driver.find_element(By.CSS_SELECTOR, "li.R-seg a[data-toggle='tab']")
         seguent.click()
@@ -74,11 +80,14 @@ driver.quit()
 print(len(urls))
 
 with open('urls.txt', 'w') as f:
-    for url, img in urls:
+    for url, img, numpag in urls:
         f.write(f"{url}, ")
-        f.write(f"{img}\n")
+        f.write(f"{img}, ")
+        f.write(f"{numpag}\n")
+        
+llistaReceptes = []
        
-for linkRecepta, img_url in urls:
+for linkRecepta, img_url, numpag in urls:
     page = requests.get(linkRecepta, headers=headers)
     soupPage = BeautifulSoup(page.content, features="html.parser")
     
@@ -88,26 +97,39 @@ for linkRecepta, img_url in urls:
     print(nomRecepta)
     
     # Obtenim els tags
-    div_tags = soupPage.find("div", class_ = "llistat-tags")
-    a_tags = div_tags.find_all("a")
-    Etiquetes = [tag.string for tag in a_tags]
+    try:
+        div_tags = soupPage.find("div", class_ = "llistat-tags")
+        a_tags = div_tags.find_all("a")
+        Etiquetes = [tag.string for tag in a_tags]
+    except:
+        Etiquetes = None
     print(Etiquetes)
     
     # Obtenim la info basica
     div_info = soupPage.find("div", class_ = "span4 informacio-basica")
     li_info = div_info.find_all("li")
+    
+    # Obtenim la dificultat
     try:
-        Dificultat = li_info[2].get_text().split()[1]
+        Dificultat_bloc = div_info.find("span", string="Dificultat: ")
+        Dificultat = Dificultat_bloc.next_sibling.strip()
     except:
         Dificultat = None
+        
+    # Obtenim el temps
     try:
-        Temps = li_info[3].get_text().split(":")[1].replace("\n", "").strip()
+        Temps_bloc = div_info.find("span", string="Temps: ")
+        Temps = Temps_bloc.next_sibling.strip()        
     except:
         Temps = None
+    
+    # Obtenim la dieta
     try:
-        Dieta = li_info[4].get_text().split()[1]
+        Dieta_bloc = div_info.find("span", string="Dieta: ")
+        Dieta = Dieta_bloc.next_sibling.string
     except:
         Dieta = None
+    
     print(Dificultat)
     print(Temps)
     print(Dieta)
@@ -125,5 +147,34 @@ for linkRecepta, img_url in urls:
     print(Preparacio)
     
     # Obtenim la fotografia
-    Imatge = img_url
+    try:
+        Imatge = img_url
+    except: 
+        Imatge = None
     print(Imatge)
+#'''    
+    # Creem el diccionari
+    recepta = {
+        "Nom":nomRecepta,
+        "Link":linkRecepta,
+        "Pagina": numpag,
+        "Imatge": img_url,
+        "Dificultat": Dificultat,
+        "Temps": Temps,
+        "Dieta": Dieta,
+        "Ingredients": Ingredients,
+        "Preparacio": Preparacio,
+        "Tags": Etiquetes
+        }
+    #afegim a la llista de diccionaris
+
+    llistaReceptes.append(recepta)
+
+# Creem l'arxiu csv i exportem tota la llista de diccionaris
+with open('receptes.csv', mode='w', newline='', encoding='utf-8') as arxiu_csv:
+    camps=llistaReceptes[0].keys()
+    escriptor_csv = csv.DictWriter(arxiu_csv, fieldnames=camps)
+    
+    escriptor_csv.writeheader()
+    escriptor_csv.writerows(llistaReceptes)
+#'''
