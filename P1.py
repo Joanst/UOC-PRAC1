@@ -144,7 +144,7 @@ recepta = {
     }
 #afegim a la llista de diccionaris
 llistaReceptes.append(recepta)
-
+hola que tal 
 '''
 #Creem l'arxiu csv i exportem tota la llista de diccionaris
 with open('receptes.csv', mode='w', newline='', encoding='utf-8') as arxiu_csv:
